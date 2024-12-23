@@ -12,13 +12,21 @@ const app = new Hono<{
 }>();
 
 app.use('/*',cors({
-  origin: ['http://localhost:5173/',"https://sapt-janm.vercel.app/"], 
+  origin: ['http://localhost:5173/', 'https://sapt-janm.vercel.app'], 
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
   allowHeaders: ['Content-Type', 'Authorization'],
   exposeHeaders:['content-length'],
   maxAge:600,
   credentials:true
 }))
+
+app.options('/*', (c) => {
+  c.header('Access-Control-Allow-Origin', 'https://sapt-janm.vercel.app');
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  c.header('Access-Control-Allow-Credentials', 'true');
+  return c.json({ message: 'Preflight OK' });
+});
 
 app.route("api/v1/user",userRouter);
 app.route("api/v1/profile",profileRouter)
