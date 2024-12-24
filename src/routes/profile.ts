@@ -185,3 +185,41 @@ profileRouter.get("/:id", async(c)=>{
 })
 
 
+profileRouter.get("/get-profile", async(c)=>{
+  const userId=c.get("userId")
+  const prisma=new PrismaClient({
+    datasourceUrl:c.env.DATABASE_URL,
+  }).$extends(withAccelerate())
+
+  const profiles= await prisma.profile.findUnique({
+
+    where:{
+      id:Number(userId)
+    },
+    select:{
+      name:true,
+      age:true,
+      gender:true,
+      religion:true,
+      location:true,
+      maritalStatus:true,
+      familyStatus:true,
+      familyType:true,
+      education:true,
+      employedIn:true,
+      occupation:true,
+      createdAt:true
+    }
+  });
+
+  if (!profiles) {
+    return c.json({ message: "User not found" }, 404);
+  }else{
+    return c.json({
+        profiles
+    })
+  }
+
+})
+
+
