@@ -22,6 +22,7 @@ profileRouter.use("/*", async(c, next)=>{
       const user= await verify(authHeader, c.env.JWT_SECRET);
 
       if(user){
+          console.log("Decoded User:", user);
           c.set("userId",String(user.id));
           await next();
       }else{
@@ -31,10 +32,11 @@ profileRouter.use("/*", async(c, next)=>{
           })
       }
     }catch(e){
-        c.status(403);
-            return c.json({
-                message:"You are not logged in"
-            })
+      console.error("JWT verification failed:", e); 
+      c.status(403);
+      return c.json({
+          message:"You are not logged in"
+      })
     }
 })
 
@@ -163,6 +165,7 @@ profileRouter.get("/:id", async(c)=>{
       id:Number(id)
     },
     select:{
+      id:true,
       name:true,
       age:true,
       gender:true,
@@ -185,41 +188,45 @@ profileRouter.get("/:id", async(c)=>{
 })
 
 
-profileRouter.get("/get-profile", async(c)=>{
-  const userId=c.get("userId")
-  const prisma=new PrismaClient({
-    datasourceUrl:c.env.DATABASE_URL,
-  }).$extends(withAccelerate())
+profileRouter.get("/", async (c) => {
+  const userId = c.get("userId");
+  console.log("userId from context:", userId); // Debug log
 
-  const profiles= await prisma.profile.findUnique({
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
 
-    where:{
-      id:Number(userId)
-    },
-    select:{
-      name:true,
-      age:true,
-      gender:true,
-      religion:true,
-      location:true,
-      maritalStatus:true,
-      familyStatus:true,
-      familyType:true,
-      education:true,
-      employedIn:true,
-      occupation:true,
-      createdAt:true
+  try {
+    const profile = await prisma.profile.findUnique
+    ({
+      where: {
+        userId: Number(userId)
+      },
+      select: {
+        name: true,
+        age: true,
+        gender: true,
+        religion: true,
+        location: true,
+        maritalStatus: true,
+        familyStatus: true,
+        familyType: true,
+        education: true,
+        employedIn: true,
+        occupation: true,
+        createdAt: true,
+      },
+    });
+
+    console.log("Profile result:", profile); // Debug log
+
+    if (!profile) {
+      return c.json({ message: "Profile not found" }, 404);
     }
-  });
 
-  if (!profiles) {
-    return c.json({ message: "User not found" }, 404);
-  }else{
-    return c.json({
-        profiles
-    })
+    return c.json({ profile });
+  } catch (error:any) {
+    console.error("Error in /get-profile:", error); 
+    return c.json({ message: "An unexpected error occurred", error: error.message}, 500);
   }
-
-})
-
-
+});
