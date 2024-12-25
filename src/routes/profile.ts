@@ -203,6 +203,7 @@ profileRouter.get("/", async (c) => {
         userId: Number(userId)
       },
       select: {
+        id:true,
         name: true,
         age: true,
         gender: true,
