@@ -92,7 +92,7 @@ profileRouter.put("/",async(c)=>{
 
     const profile = await prisma.profile.update({
         where:{
-          id:body.id
+          userId:body.id
         },
         data:{
           ...validationResult.data
