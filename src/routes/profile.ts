@@ -115,6 +115,8 @@ profileRouter.get("/bulk", async(c)=>{
   }).$extends(withAccelerate())
 
   const userId = c.get("userId");
+  console.log(userId)
+
   const userProfile = await prisma.profile.findUnique({
     where: { userId: Number(userId) },
   });
@@ -122,11 +124,14 @@ profileRouter.get("/bulk", async(c)=>{
   if (!userProfile) {
     return c.json({ message: "User profile not found" }, 404);
   }
+  console.log(userProfile)
 
   const filters: any = {};
-  filters.gender = userProfile.gender === "Male" ? "Female" : "Male";
-  filters.religion = userProfile.religion;
-  filters.maritalStatus = userProfile.maritalStatus;
+  filters.gender = { equals: userProfile.gender === "Male" ? "Female" : "Male", mode: "insensitive" };
+  filters.religion = { equals: userProfile.religion.trim(), mode: "insensitive" };
+  filters.maritalStatus = { equals: userProfile.maritalStatus.trim(), mode: "insensitive" };
+  
+  console.log(filters)
 
   const profiles= await prisma.profile.findMany({
     where:filters,
@@ -146,6 +151,8 @@ profileRouter.get("/bulk", async(c)=>{
       createdAt:true
     }
   });
+
+  console.log(profiles)
 
   return c.json({
     profiles
